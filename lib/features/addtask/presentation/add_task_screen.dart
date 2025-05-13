@@ -1,6 +1,15 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:to_do_app_with_pocketbase/core/get_dependencies.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_colors.dart';
+
+import 'package:to_do_app_with_pocketbase/features/addtask/application/add_task/add_task_cubit.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/application/add_task/add_task_state.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/model/task_model.dart';
+import 'package:to_do_app_with_pocketbase/features/auth/infrastructure/auth_local_storage.dart';
 
 class AddTaskScreen extends StatefulWidget {
   const AddTaskScreen({super.key});
@@ -48,12 +57,30 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     return DateFormat('dd MMMM yyyy - h:mm a').format(selectedDateTime!);
   }
 
-  void _submitTask() {
-    // TODO: Send task to backend or local DB
-    print('Title: ${titleController.text}');
-    print('Description: ${descController.text}');
-    print('Deadline: $formattedDateTime');
-    print('Priority: $isPriority');
+  Future<void> _submitTask() async {
+    final String? id = await getIt<AuthLocalStorage>().getUserId();
+
+    final title = titleController.text.trim();
+    final desc = descController.text.trim();
+
+    if (title.isEmpty || desc.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Title and description cannot be empty')),
+      );
+      return;
+    }
+
+    final task = TaskModel(
+      id: '',
+      title: title,
+      description: desc,
+      isCompleted: false,
+      isExpiry: selectedDateTime != null,
+      expiryDate: selectedDateTime,
+      user: id??"",
+    );
+
+    context.read<AddTaskCubit>().addTask(task);
   }
 
   InputDecoration get textFieldDecoration => InputDecoration(
@@ -72,94 +99,83 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           borderSide: BorderSide.none,
           borderRadius: BorderRadius.circular(8),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       );
+
+      
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F3),
-      appBar: AppBar(
+    return BlocListener<AddTaskCubit, AddTaskState>(
+      listener: (context, state) {
+        if (state is AddTaskSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Task added successfully!')),
+          );
+          
+        } else if (state is AddTaskError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      child: Scaffold(
         backgroundColor: const Color(0xFFF3F3F3),
-        elevation: 0,
-        title: const Text(
-          "Add task",
-          style: TextStyle(
-            // fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+        appBar: AppBar(
+          backgroundColor: const Color(0xFFF3F3F3),
+          elevation: 0,
+          title: const Text(
+            "Add task",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
+          iconTheme: const IconThemeData(color: Colors.black),
         ),
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Task title",
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 14,
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Task title", style: TextStyle(fontSize: 14)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: titleController,
+                decoration:
+                    textFieldDecoration.copyWith(hintText: "eg Buy a bike"),
               ),
-            ),
-            const SizedBox(height: 6),
-            TextField(
-              controller: titleController,
-              decoration: textFieldDecoration.copyWith(hintText: "eg Buy a bike"),
-            ),
-            const SizedBox(height: 16),
-
-            const Text(
-              "Task description",
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 14,
+              const SizedBox(height: 16),
+              const Text("Task description", style: TextStyle(fontSize: 14)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: descController,
+                maxLines: 3,
+                decoration: textFieldDecoration,
               ),
-            ),
-            const SizedBox(height: 6),
-            TextField(
-              controller: descController,
-              maxLines: 3,
-              decoration: textFieldDecoration,
-            ),
-            const SizedBox(height: 16),
-
-            const Text(
-              "Set deadline",
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 6),
-            GestureDetector(
-              onTap: _selectDateTime,
-              child: AbsorbPointer(
-                child: TextField(
-                  decoration: textFieldDecoration.copyWith(
-                    hintText: formattedDateTime,
-                    suffixIcon: const Icon(Icons.arrow_drop_down),
+              const SizedBox(height: 16),
+              const Text("Set deadline", style: TextStyle(fontSize: 14)),
+              const SizedBox(height: 6),
+              GestureDetector(
+                onTap: _selectDateTime,
+                child: AbsorbPointer(
+                  child: TextField(
+                    decoration: textFieldDecoration.copyWith(
+                      hintText: formattedDateTime,
+                      suffixIcon: const Icon(Icons.arrow_drop_down),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    "Set as priority",
-                    style: TextStyle(color: Colors.black, fontSize: 14),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Expanded(
+                    child:
+                        Text("Set as priority", style: TextStyle(fontSize: 14)),
                   ),
-                ),
-                Theme(
-                  data: Theme.of(context).copyWith(
-                    unselectedWidgetColor: Colors.grey,
-                  ),
-                  child: Checkbox(
+                  Checkbox(
                     shape: const CircleBorder(),
                     value: isPriority,
                     activeColor: AppColors.primary,
@@ -169,32 +185,39 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                       });
                     },
                   ),
-                )
-              ],
-            ),
-            const Spacer(),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _submitTask,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  "Add task",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                ],
               ),
-            ),
-          ],
+              const Spacer(),
+              BlocBuilder<AddTaskCubit, AddTaskState>(
+                builder: (context, state) {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: state is AddTaskLoading ? null : _submitTask,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: state is AddTaskLoading
+                          ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                          : const Text(
+                              "Add task",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

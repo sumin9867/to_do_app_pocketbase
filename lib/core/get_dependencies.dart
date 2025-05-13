@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/application/add_task/add_task_cubit.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/application/task/task_cubit.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/infrastructure/task_repo.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/infrastructure/auth_local_storage.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/infrastructure/auth_repository.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/application/auth_cubit.dart';
@@ -49,18 +52,20 @@ void setupLocator() {
         getIt<Dio>(),
         getIt<AuthLocalStorage>(),
       ));
+        getIt.registerLazySingleton<TaskRepo>(() => TaskRepo(
+        getIt<Dio>(),
+      ));
 
   getIt.registerLazySingleton<AuthCubit>(
       () => AuthCubit(getIt<AuthRepository>()));
-      
-  getIt.registerLazySingleton<UserDetailRepo>(
-      () => UserDetailRepo(
 
-
-
+  getIt.registerLazySingleton<UserDetailRepo>(() => UserDetailRepo(
         getIt<Dio>(),
-
       ));
-       getIt.registerLazySingleton<UserDetailCubit>(
+  getIt.registerLazySingleton<UserDetailCubit>(
       () => UserDetailCubit(getIt<UserDetailRepo>()));
+        getIt.registerLazySingleton<AddTaskCubit>(
+      () => AddTaskCubit(getIt<TaskRepo>()));
+            getIt.registerLazySingleton<TaskCubit>(
+      () => TaskCubit(getIt<TaskRepo>()));
 }

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; // Make sure to import flutter_bloc
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:to_do_app_with_pocketbase/core/get_dependencies.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_router.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_theme.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/application/add_task/add_task_cubit.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/application/task/task_cubit.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/application/auth_cubit.dart';
 import 'package:to_do_app_with_pocketbase/features/user/application/user_detail_cubit.dart';
 
 void main() {
-  setupLocator(); // Set up dependencies (GetIt)
+  setupLocator();
   runApp(const MyApp());
 }
 
@@ -19,17 +21,22 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>(
-          create: (context) =>
-              getIt<AuthCubit>(), // Provide the AuthCubit to the widget tree
+          create: (context) => getIt<AuthCubit>(),
         ),
         BlocProvider(
           create: (context) => getIt<UserDetailCubit>(),
         ),
+        BlocProvider(
+          create: (context) => getIt<AddTaskCubit>(),
+        ),
+                BlocProvider(
+          create: (context) => getIt<TaskCubit>(),
+        ),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme, // Your app theme
-        routerConfig: appRouter, // App router configuration
+        theme: AppTheme.lightTheme,
+        routerConfig: appRouter,
       ),
     );
   }

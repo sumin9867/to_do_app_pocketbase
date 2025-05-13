@@ -1,21 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:to_do_app_with_pocketbase/core/get_dependencies.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_colors.dart';
+import 'package:to_do_app_with_pocketbase/features/auth/application/auth_cubit.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/infrastructure/auth_local_storage.dart';
+import 'package:to_do_app_with_pocketbase/features/auth/infrastructure/auth_repository.dart';
 import 'package:to_do_app_with_pocketbase/features/user/application/user_detail_cubit.dart';
 import 'package:to_do_app_with_pocketbase/features/user/application/user_detail_state.dart';
 
-import 'package:to_do_app_with_pocketbase/features/auth/model/user_model.dart';
-
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final String? id = await getIt<AuthLocalStorage>().getUserId();
+    if (id != null) {
+      context.read<UserDetailCubit>().fetchUserDetail(id);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final String userId = "5wg4de150284961";
-
-    BlocProvider.of<UserDetailCubit>(context).fetchUserDetail(userId);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F3),
       appBar: AppBar(
@@ -66,7 +81,7 @@ class ProfileScreen extends StatelessWidget {
                   _buildProfileDetailRow(Icons.email, user.email),
                   _buildProfileDetailRow(Icons.info, user.name),
                   const Spacer(),
-                  _buildLogoutButton(),
+                  _buildLogoutButton(context),
                   _buildDeleteAccountButton(),
                 ],
               );
@@ -109,12 +124,12 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLogoutButton() {
+  Widget _buildLogoutButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: TextButton(
         onPressed: () {
-          print("Log Out");
+          context.read<AuthCubit>().logoutUser();
         },
         child: const Text(
           "Log Out",
@@ -128,9 +143,7 @@ class ProfileScreen extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
-          print("Delete Account");
-        },
+        onPressed: () {},
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.red,
           padding: const EdgeInsets.symmetric(vertical: 14),

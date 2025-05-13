@@ -3,7 +3,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_colors.dart';
 import 'package:to_do_app_with_pocketbase/features/addtask/presentation/add_task_screen.dart';
 import 'package:to_do_app_with_pocketbase/features/home/presentation/home_screen.dart';
-import 'package:to_do_app_with_pocketbase/features/task/presentation/task_screen.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/presentation/task_screen.dart';
 import 'package:to_do_app_with_pocketbase/features/user/presentation/user_profile_screen.dart';
 
 class ScaffoldBottomNav extends StatefulWidget {

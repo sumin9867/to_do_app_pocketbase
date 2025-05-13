@@ -1,12 +1,23 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:to_do_app_with_pocketbase/core/get_dependencies.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_colors.dart';
+import 'package:to_do_app_with_pocketbase/features/auth/infrastructure/auth_local_storage.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+
+
+
+
   @override
   Widget build(BuildContext context) {
+
+
+
     return Scaffold(
       backgroundColor: AppColors.background,
 
@@ -56,7 +67,7 @@ class HomeScreen extends StatelessWidget {
                   itemCount: 3,
                   itemBuilder: (context, index) {
                     bool isCompleted = index == 1; // second one marked
-                    return TaskCard(isCompleted: isCompleted);
+                    return TaskCardHome(isCompleted: isCompleted);
                   },
                 ),
               ),
@@ -68,10 +79,10 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class TaskCard extends StatelessWidget {
+class TaskCardHome extends StatelessWidget {
   final bool isCompleted;
 
-  const TaskCard({super.key, this.isCompleted = false});
+  const TaskCardHome({super.key, this.isCompleted = false});
 
   @override
   Widget build(BuildContext context) {

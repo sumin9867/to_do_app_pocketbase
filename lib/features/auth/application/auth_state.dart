@@ -5,6 +5,12 @@ abstract class AuthState {}
 class AuthInitial extends AuthState {}
 
 class AuthLoading extends AuthState {}
+class AuthLogout extends AuthState {
+  final String message;
+
+  AuthLogout({required this.message});
+}
+
 
 class AuthAuthenticated extends AuthState {
   final String token;
