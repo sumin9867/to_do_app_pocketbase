@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_colors.dart';
+import 'package:to_do_app_with_pocketbase/features/auth/application/auth_cubit.dart';
+import 'package:to_do_app_with_pocketbase/features/auth/application/auth_state.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -14,19 +17,46 @@ class _SignupScreenState extends State<SignupScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   void _signup() {
     if (_formKey.currentState!.validate()) {
-      context.go('/home');
+      setState(() {
+        _isLoading = true;
+      });
+
+      final name = _nameController.text;
+      final email = _emailController.text;
+      final password = _passwordController.text;
+
+      // Call the registerUser method from AuthCubit
+      context.read<AuthCubit>().registerUser(email, password, name);
     }
+  }
+
+  void showCustomSnackbar(String message, {bool isSuccess = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isSuccess ? Colors.green : Colors.red, // Green for success, red for failure
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(10),
+      ),
+    );
   }
 
   @override
@@ -58,9 +88,8 @@ class _SignupScreenState extends State<SignupScreen> {
                         labelText: 'Full Name',
                         prefixIcon: Icon(Icons.person),
                       ),
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Enter your name'
-                          : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Enter your name' : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -70,9 +99,8 @@ class _SignupScreenState extends State<SignupScreen> {
                         labelText: 'Email',
                         prefixIcon: Icon(Icons.email),
                       ),
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Enter your email'
-                          : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Enter your email' : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -86,13 +114,32 @@ class _SignupScreenState extends State<SignupScreen> {
                           ? 'Password must be at least 6 characters'
                           : null,
                     ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm Password',
+                        prefixIcon: Icon(Icons.lock),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Confirm your password';
+                        } else if (value != _passwordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
+                    ),
                     const SizedBox(height: 32),
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: _signup,
-                        child: const Text('Sign Up'),
+                        onPressed: _isLoading ? null : _signup,
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('Sign Up'),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -107,7 +154,20 @@ class _SignupScreenState extends State<SignupScreen> {
                           child: const Text('Login'),
                         ),
                       ],
-                    )
+                    ),
+                    // BlocListener to listen to AuthCubit state
+                    BlocListener<AuthCubit, AuthState>(
+                      listener: (context, state) {
+                        if (state is AuthAuthenticated) {
+                          // Navigate to Home screen on success
+                          context.go('/home');
+                        } else if (state is AuthError) {
+                          // Show error message on failure
+                          showCustomSnackbar(state.message);
+                        }
+                      },
+                      child: Container(), // Empty container since the listener does not require UI updates here
+                    ),
                   ],
                 ),
               ),
