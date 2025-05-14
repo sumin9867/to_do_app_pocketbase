@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:to_do_app_with_pocketbase/core/presentation/app_router.dart';
 import 'package:to_do_app_with_pocketbase/features/addtask/application/task/task_cubit.dart';
 import 'package:to_do_app_with_pocketbase/features/addtask/model/task_model.dart';
 import 'package:to_do_app_with_pocketbase/features/addtask/presentation/widget/task_card.dart';
@@ -30,6 +32,7 @@ class TaskList extends StatelessWidget {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       itemCount: tasks.length,
+      // reverse: true,
       itemBuilder: (context, index) {
         return GestureDetector(
           onLongPress: () {
@@ -74,7 +77,8 @@ class TaskList extends StatelessWidget {
   }
 
   void _editTask(BuildContext context, TaskModel task) {
-    print("Edit task: ${task.title}");
+context.push(AppRoutePath.editTask, extra: task);
+
   }
 
   void _deleteTask(BuildContext context, TaskModel task) {

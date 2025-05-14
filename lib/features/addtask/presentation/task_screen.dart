@@ -1,10 +1,14 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:to_do_app_with_pocketbase/core/get_dependencies.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_colors.dart';
+import 'package:to_do_app_with_pocketbase/core/presentation/app_router.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/show_snackbar.dart';
 import 'package:to_do_app_with_pocketbase/features/addtask/application/task/task_cubit.dart';
 import 'package:to_do_app_with_pocketbase/features/addtask/application/task/task_state.dart';
@@ -31,7 +35,6 @@ class _TaskScreenState extends State<TaskScreen>
     _tabController = TabController(length: 4, vsync: this);
     super.initState();
     _loadUserData();
-    // Fetch all tasks when the screen is initialized
   }
 
   @override
@@ -51,7 +54,9 @@ class _TaskScreenState extends State<TaskScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () {
+          context.push(AppRoutePath.addTask);
+        },
         backgroundColor: AppColors.primary,
         label: Text(
           "Add Task",
@@ -70,17 +75,15 @@ class _TaskScreenState extends State<TaskScreen>
         backgroundColor: const Color(0xFFF3F3F3),
         elevation: 0,
         title: Text("Task List", style: TextStyle(fontWeight: FontWeight.bold)),
-        bottom: TabBar(
+        bottom: TabBar.secondary(
           controller: _tabController,
           labelColor: AppColors.primary,
           unselectedLabelColor: Colors.black,
           indicatorColor: AppColors.primary,
           indicatorWeight: 2,
-          labelStyle: GoogleFonts.roboto(
-              fontSize: 14,
-              fontWeight: FontWeight.bold), // Bold for selected tab
-          unselectedLabelStyle:
-              GoogleFonts.roboto(fontSize: 14), // Regular for unselected tabs
+          labelStyle:
+              GoogleFonts.roboto(fontSize: 14, fontWeight: FontWeight.bold),
+          unselectedLabelStyle: GoogleFonts.roboto(fontSize: 14),
           tabs: [
             Tab(child: Text("All tasks")),
             Tab(child: Text("Pending")),
@@ -99,6 +102,30 @@ class _TaskScreenState extends State<TaskScreen>
             );
             _loadUserData();
           }
+          if (state is TaskUpdated) {
+            showCustomSnackBar(
+              context: context,
+              message: 'Task Update Successfully!',
+              isSuccess: true,
+            );
+            context.pop();
+            _loadUserData();
+          }
+          if (state is TaskLoaded) {
+            final now = DateTime.now().toUtc();
+
+            for (final task in state.tasks) {
+              final expiry = task.expiryDate?.toUtc();
+
+              if (expiry != null &&
+                  expiry.isBefore(now) &&
+                  !task.isExpiry &&
+                  !task.isCompleted) {
+                task.isExpiry = true;
+                context.read<TaskCubit>().markTaskAsExpired(task);
+              }
+            }
+          }
 
           if (state is TaskDeleted) {
             showCustomSnackBar(
@@ -107,7 +134,8 @@ class _TaskScreenState extends State<TaskScreen>
               isSuccess: true,
             );
             _loadUserData();
-          } else {
+          }
+          if (state is TaskError) {
             showCustomSnackBar(
               context: context,
               message: 'Error Performing task Please try again!',
@@ -127,15 +155,14 @@ class _TaskScreenState extends State<TaskScreen>
                   TaskList(
                       tasks: state.tasks
                           .where((task) => !task.isCompleted)
-                          .toList()), // Pending tasks
+                          .toList()),
                   TaskList(
                       tasks: state.tasks
                           .where((task) => task.isCompleted)
-                          .toList()), // Completed tasks
+                          .toList()),
                   TaskList(
-                      tasks: state.tasks
-                          .where((task) => task.isExpiry)
-                          .toList()), // Completed tasks
+                      tasks:
+                          state.tasks.where((task) => task.isExpiry).toList()),
                 ],
               );
             } else if (state is TaskError) {

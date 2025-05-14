@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_router.dart';
@@ -45,8 +46,11 @@ class OnboardingScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {
-                    context.go(AppRoutePath.login);
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('isFirstTime',
+                        false); // Save that it's not the first time
+                    context.go(AppRoutePath.login); // Navigate to login
                   },
                   child: const Text(
                     "Get Started",

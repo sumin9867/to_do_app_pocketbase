@@ -20,6 +20,11 @@ class TaskUpdatedMarked extends TaskState {
 
   const TaskUpdatedMarked(this.message);
 }
+class TaskUpdated extends TaskState {
+  final TaskModel model;
+
+  const TaskUpdated(this.model);
+}
 
 class TaskLoaded extends TaskState {
   final List<TaskModel> tasks;

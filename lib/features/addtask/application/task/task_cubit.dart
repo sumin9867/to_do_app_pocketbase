@@ -1,4 +1,5 @@
-// task_cubit.dart
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:to_do_app_with_pocketbase/features/addtask/application/task/task_state.dart';
@@ -21,25 +22,41 @@ class TaskCubit extends Cubit<TaskState> {
     );
   }
 
-   Future<void> deleteTask(String taskId) async {
+  Future<void> deleteTask(String taskId) async {
     emit(TaskLoading());
     final result = await taskRepo.deleteTask(taskId);
 
     result.fold(
       (error) => emit(TaskError(error)),
-      (success) => emit(TaskDeleted()), // Task deleted successfully
+      (success) => emit(TaskDeleted()),
     );
   }
 
-  // Mark a task as completed
+  Future<void> markTaskAsExpired(TaskModel task) async {
+    try {
+      await taskRepo.updateTaskStatus(task.id, true);
+    } catch (e) {
+      log('Error marking task as expired: $e');
+    }
+  }
+
   Future<void> markTaskAsCompleted(String taskId) async {
     emit(TaskLoading());
     final result = await taskRepo.markTaskAsCompleted(taskId);
 
     result.fold(
       (error) => emit(TaskError(error)),
-      (success) => emit(TaskUpdatedMarked(success)), // Task updated successfully
+      (success) => emit(TaskUpdatedMarked(success)),
     );
   }
-  
+
+  Future<void> editTask(TaskModel task) async {
+    emit(TaskLoading());
+    final result = await taskRepo.editTask(task);
+
+    result.fold(
+      (error) => emit(TaskError(error)),
+      (updatedTask) => emit(TaskUpdated(updatedTask)),
+    );
+  }
 }

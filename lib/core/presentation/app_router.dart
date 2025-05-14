@@ -1,6 +1,9 @@
 import 'package:go_router/go_router.dart';
 import 'package:to_do_app_with_pocketbase/core/get_dependencies.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/scaffold_bottom_nav.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/model/task_model.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/presentation/add_task_screen.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/presentation/edit_task_screen.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/infrastructure/auth_local_storage.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/presentation/login_screen.dart';
 import 'package:to_do_app_with_pocketbase/features/onboarding/presentation/onboarding_screen.dart';
@@ -15,18 +18,26 @@ class AppRoutePath {
   static const String login = '/login';
   static const String signup = '/signup';
   static const String home = '/home';
+  static const String addTask = '/addTask';
+  static const String editTask = '/editTask';
 }
 
 final GoRouter appRouter = GoRouter(
+  debugLogDiagnostics: true,
   initialLocation: AppRoutePath.onboarding,
   redirect: (context, state) async {
     final String? token = await getToken();
+    final isAuth = token != null && token.isNotEmpty;
 
-    if (token != null && token.isNotEmpty) {
-      return AppRoutePath.home;
-    } else {
+    if (!isAuth && state.matchedLocation != AppRoutePath.login) {
       return AppRoutePath.login;
     }
+
+    if (isAuth && state.matchedLocation == AppRoutePath.login) {
+      return AppRoutePath.home;
+    }
+
+    return null;
   },
   routes: [
     GoRoute(
@@ -42,8 +53,19 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const SignupScreen(),
     ),
     GoRoute(
+      path: AppRoutePath.addTask,
+      builder: (context, state) => const AddTaskScreen(),
+    ),
+    GoRoute(
       path: AppRoutePath.home,
       builder: (context, state) => const ScaffoldBottomNav(),
+    ),
+    GoRoute(
+      path: AppRoutePath.editTask,
+      builder: (context, state) {
+        final task = state.extra as TaskModel;
+        return EditTaskScreen(taskModel: task);
+      },
     ),
   ],
 );

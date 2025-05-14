@@ -18,7 +18,7 @@ class _ScaffoldBottomNavState extends State<ScaffoldBottomNav> {
 
   final List<Widget> _pages = const [
     HomeScreen(),
-    AddTaskScreen(),
+    
     TaskScreen(),
     ProfileScreen()
   ];
@@ -42,25 +42,20 @@ class _ScaffoldBottomNavState extends State<ScaffoldBottomNav> {
         items: [
           BottomNavigationBarItem(
             icon: _selectedIndex == 0
-                ? const Icon(Iconsax.home) // Home icon without "_copy"
+                ? const Icon(Iconsax.home) 
                 : const Icon(Iconsax.home_2_copy),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
-            icon: _selectedIndex == 1
-                ? const Icon(Iconsax.add_circle) // Add Task icon without "_copy"
-                : const Icon(Iconsax.add_circle_copy),
-            label: 'Add Tasks',
-          ),
+ 
           BottomNavigationBarItem(
             icon: _selectedIndex == 2
-                ? const Icon(Iconsax.task_square) // Tasks icon without "_copy"
+                ? const Icon(Iconsax.task_square) 
                 : const Icon(Iconsax.task_square_copy),
             label: 'Tasks',
           ),
           BottomNavigationBarItem(
             icon: _selectedIndex == 3
-                ? const Icon(Iconsax.profile_circle) // Profile icon without "_copy"
+                ? const Icon(Iconsax.profile_circle) 
                 : const Icon(Iconsax.profile_circle_copy),
             label: 'Profile',
           ),

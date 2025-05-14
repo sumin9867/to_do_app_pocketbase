@@ -2,12 +2,15 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:to_do_app_with_pocketbase/core/get_dependencies.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_colors.dart';
+import 'package:to_do_app_with_pocketbase/core/presentation/show_snackbar.dart';
 
 import 'package:to_do_app_with_pocketbase/features/addtask/application/add_task/add_task_cubit.dart';
 import 'package:to_do_app_with_pocketbase/features/addtask/application/add_task/add_task_state.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/application/task/task_cubit.dart';
 import 'package:to_do_app_with_pocketbase/features/addtask/model/task_model.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/infrastructure/auth_local_storage.dart';
 
@@ -27,7 +30,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   Future<void> _selectDateTime() async {
     final DateTime? date = await showDatePicker(
       context: context,
-      firstDate: DateTime.now(),
+      firstDate: DateTime(2000),
       lastDate: DateTime(2100),
       initialDate: DateTime.now(),
     );
@@ -63,21 +66,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     final title = titleController.text.trim();
     final desc = descController.text.trim();
 
-    if (title.isEmpty || desc.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Title and description cannot be empty')),
-      );
-      return;
-    }
-
     final task = TaskModel(
       id: '',
       title: title,
       description: desc,
       isCompleted: false,
-      isExpiry: selectedDateTime != null,
+      isExpiry: false,
       expiryDate: selectedDateTime,
-      user: id??"",
+      user: id ?? "",
+      isPriority: isPriority,
     );
 
     context.read<AddTaskCubit>().addTask(task);
@@ -103,21 +100,28 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       );
 
-      
+  Future<void> _loadUserData() async {
+    final String? id = await getIt<AuthLocalStorage>().getUserId();
+    if (id != null) {
+      context.read<TaskCubit>().fetchTasks(id);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    log("I am prority $isPriority");
     return BlocListener<AddTaskCubit, AddTaskState>(
       listener: (context, state) {
         if (state is AddTaskSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Task added successfully!')),
-          );
-          
+          showCustomSnackBar(
+              context: context,
+              message: "Task Added Successfullly",
+              isSuccess: true);
+          _loadUserData();
+          context.pop();
         } else if (state is AddTaskError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          showCustomSnackBar(
+              context: context, message: state.message, isSuccess: false);
         }
       },
       child: Scaffold(

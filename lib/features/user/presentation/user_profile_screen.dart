@@ -81,7 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildProfileDetailRow(Icons.email, user.email),
                   _buildProfileDetailRow(Icons.info, user.name),
                   const Spacer(),
-                  _buildLogoutButton(context),
+        
                   _buildDeleteAccountButton(),
                 ],
               );
@@ -124,26 +124,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: TextButton(
-        onPressed: () {
-          context.read<AuthCubit>().logoutUser();
-        },
-        child: const Text(
-          "Log Out",
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildDeleteAccountButton() {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {},
+     onPressed: () {
+          context.read<AuthCubit>().logoutUser();
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.red,
           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -152,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         child: const Text(
-          "Delete Account",
+          "Log Out",
           style: TextStyle(color: Colors.white),
         ),
       ),

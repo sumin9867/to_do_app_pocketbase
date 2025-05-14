@@ -1,51 +1,74 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:to_do_app_with_pocketbase/core/get_dependencies.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_colors.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/application/task/task_cubit.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/application/task/task_state.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/model/task_model.dart';
+import 'package:to_do_app_with_pocketbase/features/addtask/presentation/widget/task_list.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/infrastructure/auth_local_storage.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
 
 
+class _HomeScreenState extends State<HomeScreen> {
 
+  
+ @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+
+
+  Future<void> _loadUserData() async {
+    final String? id = await getIt<AuthLocalStorage>().getUserId();
+    if (id != null) {
+      context.read<TaskCubit>().fetchTasks(id);
+    }
+  }
   @override
   Widget build(BuildContext context) {
-
-
-
     return Scaffold(
       backgroundColor: AppColors.background,
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Row: Avatar + Icons
               Row(
                 children: [
                   const CircleAvatar(
                     radius: 20,
                     backgroundColor: Color(0xFFE1DFF9),
-                    child: Text('B', style: TextStyle(color: Colors.black)),
+             child: Icon(
+  Iconsax.pen_add,  // Use the profile icon from Iconsax
+  color: Colors.black,  // Set the color to black
+  size: 30,  // Set the size of the icon
+),
                   ),
                   const Spacer(),
                   IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
                   IconButton(
-                      onPressed: () {}, icon: const Icon(Icons.notifications_none)),
+                      onPressed: () {},
+                      icon: const Icon(Icons.notifications_none)),
                 ],
               ),
               const SizedBox(height: 20),
-
-              // Greeting
               Text(
-                'Hello Blossom 👋',
+                'Good Morning 👋',
                 style: GoogleFonts.roboto(
                   color: Colors.black,
                   fontSize: 24,
@@ -60,14 +83,36 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 60),
-
-              // Task List
               Expanded(
-                child: ListView.builder(
-                  itemCount: 3,
-                  itemBuilder: (context, index) {
-                    bool isCompleted = index == 1; // second one marked
-                    return TaskCardHome(isCompleted: isCompleted);
+                child: BlocBuilder<TaskCubit, TaskState>(
+                  builder: (context, state) {
+                    if (state is TaskLoading) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (state is TaskLoaded) {
+                      final now = DateTime.now();
+                      final inThreeDays = now.add(Duration(days: 3));
+
+                      final filteredTasks = state.tasks
+                          .where((task) {
+                            final isPriorityValid =
+                                task.isPriority && !task.isExpiry;
+                            final isExpiringSoon = task.expiryDate != null &&
+                                !task.isExpiry &&
+                                task.expiryDate!.isAfter(now) &&
+                                task.expiryDate!.isBefore(inThreeDays);
+                            return isPriorityValid || isExpiringSoon;
+                          })
+                          .toSet()
+                          .toList();
+
+                 
+              
+
+                      return TaskList(tasks: filteredTasks);
+                    } else if (state is TaskError) {
+                      return Center(child: Text('Error: ${state.message}'));
+                    }
+                    return Center(child: Text('No tasks available.'));
                   },
                 ),
               ),
@@ -103,7 +148,6 @@ class TaskCardHome extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title row
           Row(
             children: [
               Text(
@@ -111,7 +155,6 @@ class TaskCardHome extends StatelessWidget {
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
-
                   fontSize: 16,
                 ),
               ),
@@ -125,16 +168,13 @@ class TaskCardHome extends StatelessWidget {
             style: GoogleFonts.roboto(color: Colors.grey[600]),
           ),
           const SizedBox(height: 16),
-
-          // Bottom row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 '10:30 PM 19 Feb, 2025',
                 style: GoogleFonts.roboto(
-                            color: Colors.black,
-
+                  color: Colors.black,
                   fontSize: 13,
                 ),
               ),
@@ -150,7 +190,9 @@ class TaskCardHome extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Icon(
-                    isCompleted ? Icons.check_box : Icons.check_box_outline_blank,
+                    isCompleted
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank,
                     color: isCompleted ? Colors.green : Colors.grey,
                   )
                 ],

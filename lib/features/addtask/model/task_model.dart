@@ -3,17 +3,19 @@ class TaskModel {
   final String title;
   final String description;
   final bool isCompleted;
-  final bool isExpiry;
+  bool isExpiry;
   final DateTime? expiryDate;
   final String user;
+  final bool isPriority; 
 
-  TaskModel( {
+  TaskModel({
     required this.user,
     required this.id,
     required this.title,
     required this.description,
     required this.isCompleted,
     required this.isExpiry,
+    required this.isPriority, 
     this.expiryDate,
   });
 
@@ -24,19 +26,20 @@ class TaskModel {
       "isCompleted": isCompleted,
       "isExpiry": isExpiry,
       "user": user,
-
-      "expiryDate": expiryDate?.toIso8601String(), // send ISO string to backend
+      "isPriority": isPriority, 
+      "expiryDate": expiryDate?.toIso8601String(), 
     };
   }
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
-      user:json['user']??"",
+      user: json['user'] ?? "",
       id: json['id'] ?? '',
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       isCompleted: json['isCompleted'] ?? false,
       isExpiry: json['isExpiry'] ?? false,
+      isPriority: json['isPriority'] ?? false, 
       expiryDate: json['expiryDate'] != null
           ? DateTime.tryParse(json['expiryDate'])
           : null,
