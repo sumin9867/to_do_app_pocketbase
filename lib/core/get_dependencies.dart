@@ -20,7 +20,7 @@ void setupLocator() {
   getIt.registerLazySingleton<Dio>(() {
     final dio = Dio(
       BaseOptions(
-        baseUrl: "http://10.0.2.2:8090",
+      baseUrl: "http://192.168.1.51:8090", 
         headers: {"Content-Type": "application/json"},
       ),
     );

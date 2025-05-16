@@ -1,4 +1,6 @@
 
+import 'dart:developer';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/application/auth_state.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/infrastructure/auth_repository.dart';
@@ -32,6 +34,7 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
    Future<void> logoutUser() async {
+  log("message");
     emit(AuthLoading());
     final result = await authRepository.logoutUser();
     result.fold(

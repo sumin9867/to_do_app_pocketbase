@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_colors.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_router.dart';
+import 'package:to_do_app_with_pocketbase/core/presentation/show_snackbar.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/application/auth_cubit.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/application/auth_state.dart';
 
@@ -42,7 +43,14 @@ class _LoginScreenState extends State<LoginScreen> {
    if (state is AuthAuthenticated) {
     context.push(AppRoutePath.home);
      
-   } else {
+   } 
+if (state is AuthError) {
+  showCustomSnackBar(context: context, message: state.message, isSuccess: false);
+
+}
+   
+   
+   else {
     Text("error");
      
    }

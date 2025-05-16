@@ -39,7 +39,7 @@ class _SignupScreenState extends State<SignupScreen> {
       final email = _emailController.text;
       final password = _passwordController.text;
 
-      // Call the registerUser method from AuthCubit
+      
       context.read<AuthCubit>().registerUser(email, password, name);
     }
   }
@@ -48,7 +48,7 @@ class _SignupScreenState extends State<SignupScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isSuccess ? Colors.green : Colors.red, // Green for success, red for failure
+        backgroundColor: isSuccess ? Colors.green : Colors.red, 
         duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -155,18 +155,18 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ],
                     ),
-                    // BlocListener to listen to AuthCubit state
+                    
                     BlocListener<AuthCubit, AuthState>(
                       listener: (context, state) {
                         if (state is AuthAuthenticated) {
-                          // Navigate to Home screen on success
+                          
                           context.go('/home');
                         } else if (state is AuthError) {
-                          // Show error message on failure
+                          
                           showCustomSnackbar(state.message);
                         }
                       },
-                      child: Container(), // Empty container since the listener does not require UI updates here
+                      child: Container(), 
                     ),
                   ],
                 ),

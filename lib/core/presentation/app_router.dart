@@ -25,20 +25,27 @@ class AppRoutePath {
 final GoRouter appRouter = GoRouter(
   debugLogDiagnostics: true,
   initialLocation: AppRoutePath.onboarding,
-  redirect: (context, state) async {
-    final String? token = await getToken();
-    final isAuth = token != null && token.isNotEmpty;
+ redirect: (context, state) async {
+  final token = await getToken(); 
 
-    if (!isAuth && state.matchedLocation != AppRoutePath.login) {
+  final isLoggingIn = state.matchedLocation == AppRoutePath.login;
+  final isSigningUp = state.matchedLocation == AppRoutePath.signup;
+
+  if (token == null) {
+    
+    if (!isLoggingIn && !isSigningUp) {
       return AppRoutePath.login;
     }
-
-    if (isAuth && state.matchedLocation == AppRoutePath.login) {
+  } else {
+    
+    if (isLoggingIn || isSigningUp) {
       return AppRoutePath.home;
     }
+  }
 
-    return null;
-  },
+  return null;
+},
+
   routes: [
     GoRoute(
       path: AppRoutePath.onboarding,

@@ -1,7 +1,11 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:to_do_app_with_pocketbase/core/get_dependencies.dart';
 import 'package:to_do_app_with_pocketbase/core/presentation/app_colors.dart';
+import 'package:to_do_app_with_pocketbase/core/presentation/app_router.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/application/auth_cubit.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/infrastructure/auth_local_storage.dart';
 import 'package:to_do_app_with_pocketbase/features/auth/infrastructure/auth_repository.dart';
@@ -57,7 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       const CircleAvatar(
                         radius: 45,
-                        backgroundImage: AssetImage('assets/profile.jpg'),
+                      
                       ),
                       Positioned(
                         bottom: 0,
@@ -131,7 +135,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       width: double.infinity,
       child: ElevatedButton(
      onPressed: () {
+      log("Button preseed");
           context.read<AuthCubit>().logoutUser();
+          context.push(AppRoutePath.login);
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.red,
